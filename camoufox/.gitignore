@@ -52,7 +52,7 @@ closedsrc
 
 # Build outputs
 *.so
-/camoufox
+# /camoufox
 /omni.ja
 /precomplete
 /dependentlibs.list
