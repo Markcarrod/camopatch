@@ -1,0 +1,101 @@
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+index 8f8da3c4ca..83e9ccce59 100644
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -1660,65 +1660,6 @@ const DefaultBrowserHelper = {
+   },
+ };
+ 
+-Preferences.addSetting({
+-  id: "alwaysCheckDefault",
+-  pref: "browser.shell.checkDefaultBrowser",
+-  setup: emitChange => {
+-    if (!DefaultBrowserHelper.canCheck) {
+-      return;
+-    }
+-    DefaultBrowserHelper.pollForDefaultChanges(emitChange);
+-    // eslint-disable-next-line consistent-return
+-    return () => DefaultBrowserHelper.clearPollingForDefaultChanges();
+-  },
+-  /**
+-   * Show button for setting browser as default browser or information that
+-   * browser is already the default browser.
+-   */
+-  visible: () => DefaultBrowserHelper.canCheck,
+-  disabled: (_, setting) =>
+-    !DefaultBrowserHelper.canCheck ||
+-    setting.locked ||
+-    DefaultBrowserHelper.isBrowserDefault,
+-});
+-
+-Preferences.addSetting({
+-  id: "isDefaultPane",
+-  deps: ["alwaysCheckDefault"],
+-  visible: () =>
+-    DefaultBrowserHelper.canCheck && DefaultBrowserHelper.isBrowserDefault,
+-});
+-
+-Preferences.addSetting({
+-  id: "isNotDefaultPane",
+-  deps: ["alwaysCheckDefault"],
+-  visible: () =>
+-    DefaultBrowserHelper.canCheck && !DefaultBrowserHelper.isBrowserDefault,
+-  onUserClick: (e, { alwaysCheckDefault }) => {
+-    if (!DefaultBrowserHelper.canCheck) {
+-      return;
+-    }
+-    const setDefaultButton = /** @type {MozButton} */ (e.target);
+-
+-    if (!setDefaultButton) {
+-      return;
+-    }
+-    if (setDefaultButton.disabled) {
+-      return;
+-    }
+-
+-    /**
+-     * Disable the set default button, so that the user
+-     * doesn't try to hit it again while browser is being set to default.
+-     */
+-    setDefaultButton.disabled = true;
+-    alwaysCheckDefault.value = true;
+-    DefaultBrowserHelper.setDefaultBrowser().finally(() => {
+-      setDefaultButton.disabled = false;
+-    });
+-  },
+-});
+-
+ // Firefox support settings
+ Preferences.addSetting({
+   id: "supportLinksGroup",
+@@ -2688,10 +2629,6 @@ function createStartupConfig(hidden = false) {
+         control: "moz-message-bar",
+         l10nId: "startup-windows-launch-on-login-profile-disabled",
+       },
+-      {
+-        id: "alwaysCheckDefault",
+-        l10nId: "always-check-default",
+-      },
+     ],
+   };
+ }
+@@ -2753,7 +2690,6 @@ SettingGroupManager.registerGroups({
+       },
+     ],
+   },
+-  defaultBrowser: createDefaultBrowserConfig(),
+   startup: createStartupConfig(
+     Services.prefs.getBoolPref("browser.settings-redesign.enabled", false)
+   ),
+@@ -4639,11 +4575,6 @@ SettingGroupManager.registerGroups({
+       },
+     ],
+   },
+-  defaultBrowserSync: createDefaultBrowserConfig({
+-    includeIsDefaultPane: false,
+-    inProgress: true,
+-    hiddenFromSearch: true,
+-  }),
+   sync: {
+     inProgress: true,
+     l10nId: "sync-group-label",
