@@ -727,11 +727,17 @@ def launch_options(
                         stale_prefs.unlink()
                         print("[camoufox] Deleted stale prefs.js")
                 else:
-                    # Load config
+                    # Load config — filter out any keys not in the current properties schema
+                    # (prevents stale keys from older camoufox versions crashing the launch)
+                    try:
+                        _valid_keys = set(_load_properties().keys())
+                    except Exception:
+                        _valid_keys = None
                     cached_config = cached_profile.get('config', {})
                     for k, v in cached_config.items():
                         if k not in config:
-                            config[k] = v
+                            if _valid_keys is None or k in _valid_keys:
+                                config[k] = v
 
                     # Load firefox_user_prefs
                     cached_prefs = cached_profile.get('firefox_user_prefs', {})
