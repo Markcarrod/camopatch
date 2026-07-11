@@ -1,3 +1,22 @@
+# Browser profiles (persistent sessions — do NOT commit)
 profiles/
+test_profiles/
+
+# Python cache
 __pycache__/
+*.py[cod]
+*.pyo
+
+# Environment / secrets
+.env
+.env.*
+
+# Logs
 *.log
+
+# Windows-only installer (not needed on Linux)
+vc_redist.exe
+
+# Scratch / dev files
+scratch/
+scratch_verify.py

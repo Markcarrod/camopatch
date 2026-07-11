@@ -47,7 +47,9 @@ CACHE_PREFS = {
 # notices but all of which create detectable network noise.
 # ---------------------------------------------------------------------------
 STEALTH_PREFS = {
+    # -----------------------------------------------------------------------
     # Telemetry & data reporting
+    # -----------------------------------------------------------------------
     'toolkit.telemetry.enabled': False,
     'toolkit.telemetry.unified': False,
     'toolkit.telemetry.server': 'data:,',
@@ -62,42 +64,167 @@ STEALTH_PREFS = {
     'app.shield.optoutstudies.enabled': False,
     'app.normandy.enabled': False,
     'app.normandy.api_url': '',
+
+    # -----------------------------------------------------------------------
     # Google Safe Browsing (leaks visited URLs to Google)
+    # -----------------------------------------------------------------------
     'browser.safebrowsing.malware.enabled': False,
     'browser.safebrowsing.phishing.enabled': False,
     'browser.safebrowsing.blockedURIs.enabled': False,
     'browser.safebrowsing.provider.google4.gethashURL': '',
     'browser.safebrowsing.provider.google4.updateURL': '',
+
+    # -----------------------------------------------------------------------
     # Captive portal & connectivity probes
+    # -----------------------------------------------------------------------
     'network.captive-portal-service.enabled': False,
     'network.connectivity-service.enabled': False,
+
+    # -----------------------------------------------------------------------
     # Crash reporting
+    # -----------------------------------------------------------------------
     'browser.crashReports.unsubmittedCheck.autoSubmit2': False,
     'browser.tabs.crashReporting.sendReport': False,
+
+    # -----------------------------------------------------------------------
     # Push / web notifications
+    # -----------------------------------------------------------------------
     'dom.webnotifications.enabled': False,
     'dom.push.enabled': False,
+
+    # -----------------------------------------------------------------------
     # Ping & beacon APIs (tracking vectors)
+    # -----------------------------------------------------------------------
     'browser.send_pings': False,
     'beacon.enabled': False,
+
+    # -----------------------------------------------------------------------
     # Geo JS API (Camoufox mocks this itself)
+    # -----------------------------------------------------------------------
     'geo.enabled': False,
     'permissions.default.geo': 1,
+
+    # -----------------------------------------------------------------------
     # Update nags
+    # -----------------------------------------------------------------------
     'app.update.enabled': False,
     'app.update.auto': False,
     'browser.search.update': False,
+
+    # -----------------------------------------------------------------------
     # WebRTC: only expose the default route, preventing local IP leaks
+    # -----------------------------------------------------------------------
     'media.peerconnection.ice.default_address_only': True,
     'media.peerconnection.ice.no_host': False,
+
+    # -----------------------------------------------------------------------
     # Extensions: standard scope, no silent auto-disable
+    # -----------------------------------------------------------------------
     'extensions.autoDisableScopes': 15,
     'extensions.enabledScopes': 5,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Timer precision hardening
+    # High-resolution timers are a timing side-channel fingerprint surface.
+    # Reducing precision to 1ms prevents sub-millisecond timing attacks while
+    # keeping the browser functionally normal for real users.
+    # -----------------------------------------------------------------------
+    'privacy.reduceTimerPrecision': True,
+    'privacy.resistFingerprinting.reduceTimerPrecision.jitter': True,
+    'privacy.resistFingerprinting.reduceTimerPrecision.microseconds': 1000,
+
+    # -----------------------------------------------------------------------
+    # [NEW] WebGPU - disable entirely until consistent spoofing is achievable.
+    # WebGPU exposes GPU adapter info (vendor, architecture, device),
+    # limits (maxTextureDimension2D etc.) and features - all must align
+    # with the WebGL identity. Until patched, disable to avoid contradiction.
+    # -----------------------------------------------------------------------
+    'dom.webgpu.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Bluetooth / USB / HID API enumeration
+    # These APIs should not be available in a normal desktop browser session.
+    # Their mere existence (or unusual behavior) fingerprints the environment.
+    # -----------------------------------------------------------------------
+    'dom.bluetooth.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Gamepad API
+    # navigator.getGamepads() timing and polling behavior is fingerprintable.
+    # A normal desktop web session almost never has gamepads; disable it.
+    # -----------------------------------------------------------------------
+    'dom.gamepad.enabled': False,
+    'dom.gamepad.extensions.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Device Motion / Orientation Sensor APIs
+    # These are mobile-only signals. On Windows desktop they must be absent.
+    # Exposing them signals a bot environment or mismatched device profile.
+    # -----------------------------------------------------------------------
+    'device.sensors.enabled': False,
+    'device.sensors.motion.enabled': False,
+    'device.sensors.orientation.enabled': False,
+    'device.sensors.proximity.enabled': False,
+    'device.sensors.ambientLight.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Network Information API (navigator.connection)
+    # Exposes effectiveType ('4g'/'3g'), RTT, and downlink. A proxied session
+    # should not claim '4g' with 5ms RTT. Disabling prevents this leak.
+    # -----------------------------------------------------------------------
+    'dom.netinfo.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] OffscreenCanvas & Worker privacy
+    # Canvas noise spoofing in the main thread must propagate to Workers.
+    # Firefox's privacy.resistFingerprinting in workers achieves this.
+    # We enable just the worker-scoped timer/canvas precision, not the full
+    # resist-fingerprinting mode which would make the UA report a generic one.
+    # -----------------------------------------------------------------------
+    'privacy.resistFingerprinting.reduceTimerPrecision.microsecondsInWorkers': 1000,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Clipboard API
+    # Clipboard read/write permission state must be consistent with the
+    # Permissions API. Default to 'denied' to match most normal desktop
+    # Chrome and Firefox profiles that haven't granted clipboard access.
+    # -----------------------------------------------------------------------
+    'permissions.default.shortcuts': 2,  # deny keyboard-shortcut override
+
+    # -----------------------------------------------------------------------
+    # [NEW] CSS forced-colors / prefers-contrast consistency
+    # Windows 11 normal user: forced-colors = none, contrast = no-preference.
+    # This is already partially set per-profile but ensures a safe default.
+    # -----------------------------------------------------------------------
+    'ui.useOverlayScrollbars': 0,
+    'browser.display.use_system_colors': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Disable speculative pre-connections that leak browsing intent
+    # -----------------------------------------------------------------------
+    'network.http.speculative-parallel-limit': 0,
+    'network.prefetch-next': False,
+    'network.dns.disablePrefetch': True,
+    'network.predictor.enabled': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Disable Web Speech API recognition (server-side, leaks audio)
+    # Note: SpeechSynthesis (local TTS) is kept — it's spoofed by Camoufox.
+    # -----------------------------------------------------------------------
+    'media.webspeech.recognition.enable': False,
+    'media.webspeech.recognition.force_enable': False,
+
+    # -----------------------------------------------------------------------
+    # [NEW] Resist storage partitioning probes used for cross-site tracking
+    # -----------------------------------------------------------------------
+    'privacy.partition.network_state': True,
+    'privacy.partition.serviceWorkers': True,
+    'privacy.partition.always_partition_third_party_non_cookie_storage': True,
 }
 
 # Increment this whenever the cached fingerprint schema changes.
 # Any profile whose saved version != PROFILE_VERSION will be regenerated.
-PROFILE_VERSION = 9
+PROFILE_VERSION = 10
 
 # Screen resolutions considered "laptop" for GPU/core correlation
 _LAPTOP_RESOLUTIONS = {(1366, 768), (1536, 864), (1440, 900), (1280, 720), (1280, 800)}
@@ -239,6 +366,12 @@ def update_fonts(config: Dict[str, Any], target_os: str) -> None:
     """
     with open(os.path.join(os.path.dirname(__file__), "fonts.json"), "rb") as f:
         fonts = orjson.loads(f.read())[target_os]
+
+    if target_os == 'win':
+        # Filter out Windows 11-only fonts to align with the Windows 10 UA & oscpu signatures.
+        # Segoe Fluent Icons, Segoe UI Variable, and HoloLens MDL2 Assets only exist in Win11.
+        win11_fonts = {"Segoe Fluent Icons", "Segoe UI Variable", "HoloLens MDL2 Assets"}
+        fonts = [font for font in fonts if font not in win11_fonts]
 
     # Merge with existing fonts
     if 'fonts' in config:
@@ -665,6 +798,8 @@ def launch_options(
         res_list = [(1920, 1080), (1536, 864), (1366, 768), (1440, 900), (1280, 720)]
         w, h = choices(res_list, weights=[50, 20, 15, 10, 5], k=1)[0]
 
+        memory = config.get('_stealth:deviceMemory')
+
         # 2. Cohesive hardware pairing logic covering all GPUs, cores, and memory
         if (w, h) == (1920, 1080):
             # 1920x1080 could be High-end desktop, Mid-range desktop/laptop, or Budget office desktop
@@ -672,7 +807,8 @@ def launch_options(
             if sub_type == "high":
                 ratio = 1.0
                 cores = choices([8, 12, 16], weights=[60, 30, 10], k=1)[0]
-                memory = 16
+                if memory is None:
+                    memory = 16
                 gpu_list = [
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti Direct3D11 vs_5_0 ps_5_0)"),
@@ -689,7 +825,8 @@ def launch_options(
             elif sub_type == "mid":
                 ratio = 1.0
                 cores = choices([6, 8], weights=[50, 50], k=1)[0]
-                memory = choices([8, 16], weights=[50, 50], k=1)[0]
+                if memory is None:
+                    memory = choices([8, 16], weights=[50, 50], k=1)[0]
                 gpu_list = [
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti Direct3D11 vs_5_0 ps_5_0)"),
@@ -713,7 +850,8 @@ def launch_options(
             else:
                 ratio = 1.0
                 cores = choices([4, 6], weights=[60, 40], k=1)[0]
-                memory = choices([8, 16], weights=[70, 30], k=1)[0]
+                if memory is None:
+                    memory = choices([8, 16], weights=[70, 30], k=1)[0]
                 gpu_list = [
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 730 Direct3D11 vs_5_0 ps_5_0)"),
@@ -731,18 +869,21 @@ def launch_options(
             ], weights=[60, 20, 20], k=1)[0]
             if gpu_vendor == "Intel" and gpu_renderer == "Iris Xe":
                 cores = 8
-                memory = choices([8, 16], weights=[60, 40], k=1)[0]
+                if memory is None:
+                    memory = choices([8, 16], weights=[60, 40], k=1)[0]
                 gpu_list = [("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics Direct3D11 vs_5_0 ps_5_0)")]
             elif gpu_vendor == "Intel" and gpu_renderer == "UHD":
                 cores = choices([4, 6], weights=[70, 30], k=1)[0]
-                memory = 8
+                if memory is None:
+                    memory = 8
                 gpu_list = [
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)"),
                 ]
             else:
                 cores = choices([6, 8], weights=[50, 50], k=1)[0]
-                memory = choices([8, 16], weights=[50, 50], k=1)[0]
+                if memory is None:
+                    memory = choices([8, 16], weights=[50, 50], k=1)[0]
                 gpu_list = [
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce RTX 3050 Direct3D11 vs_5_0 ps_5_0)"),
@@ -753,11 +894,13 @@ def launch_options(
             gpu_type = choices(["HD620", "UHD620/Other"], weights=[40, 60], k=1)[0]
             if gpu_type == "HD620":
                 cores = choices([2, 4], weights=[40, 60], k=1)[0]
-                memory = choices([4, 8], weights=[50, 50], k=1)[0]
+                if memory is None:
+                    memory = choices([4, 8], weights=[50, 50], k=1)[0]
                 gpu_list = [("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) HD Graphics 620 Direct3D11 vs_5_0 ps_5_0)")]
             else:
                 cores = 4
-                memory = choices([4, 8], weights=[30, 70], k=1)[0]
+                if memory is None:
+                    memory = choices([4, 8], weights=[30, 70], k=1)[0]
                 gpu_list = [
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)"),
                     ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) HD Graphics 630 Direct3D11 vs_5_0 ps_5_0)"),
@@ -767,7 +910,8 @@ def launch_options(
             # Widescreen monitor
             ratio = 1.0
             cores = choices([4, 6], weights=[70, 30], k=1)[0]
-            memory = choices([8, 16], weights=[60, 40], k=1)[0]
+            if memory is None:
+                memory = choices([8, 16], weights=[60, 40], k=1)[0]
             gpu_list = [
                 ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)"),
                 ("Google Inc. (NVIDIA)", "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)"),
@@ -778,12 +922,14 @@ def launch_options(
             # 1280x720 very old budget machine
             ratio = 1.0
             cores = choices([2, 4], weights=[60, 40], k=1)[0]
-            memory = choices([4, 8], weights=[70, 30], k=1)[0]
+            if memory is None:
+                memory = choices([4, 8], weights=[70, 30], k=1)[0]
             gpu_list = [
                 ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) HD Graphics 520 Direct3D11 vs_5_0 ps_5_0)"),
                 ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) HD Graphics 620 Direct3D11 vs_5_0 ps_5_0)"),
                 ("Google Inc. (Intel)", "ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)"),
             ]
+
 
         # 3. Apply profile parameters
         config['screen.width'] = w
@@ -798,6 +944,13 @@ def launch_options(
 
         config['window.devicePixelRatio'] = ratio
         config['navigator.hardwareConcurrency'] = cores
+        # navigator.deviceMemory is NOT in Camoufox's properties.json schema.
+        # It is spoofed at the JS layer via stealth_patch.js using the `memory`
+        # variable captured from this scope. Store it for the JS preamble below.
+        # (memory variable is still used when building the Worker preamble string)
+        config['_stealth:deviceMemory'] = memory
+
+
 
         chosen_gpu_vendor, chosen_gpu_renderer = choices(gpu_list)[0]
         modernized_gpu_vendor = chosen_gpu_vendor
@@ -860,7 +1013,13 @@ def launch_options(
         config['voices:blockIfNotDefined'] = False
         config['voices:fakeCompletion'] = True
         if 'voices' not in original_keys:
+            # Windows 11 exposes a mix of legacy SAPI desktop voices and
+            # newer neural voices (installed automatically on Win11 22H2+).
+            # Including both tiers makes the voice fingerprint match a real
+            # Windows 11 machine and prevents the trivially short 2-voice list
+            # from being a uniqueness signal.
             config['voices'] = [
+                # Legacy SAPI desktop voices (present on all Windows 10/11)
                 {
                     "voiceURI": "urn:moz-tts:sapi:Microsoft David Desktop - English (United States)?en-US",
                     "name": "Microsoft David Desktop - English (United States)",
@@ -874,12 +1033,42 @@ def launch_options(
                     "lang": "en-US",
                     "localService": True,
                     "default": False
+                },
+                # Neural (natural) voices — added automatically on Windows 11 22H2+
+                {
+                    "voiceURI": "urn:moz-tts:sapi:Microsoft Aria Online (Natural) - English (United States)?en-US",
+                    "name": "Microsoft Aria Online (Natural) - English (United States)",
+                    "lang": "en-US",
+                    "localService": False,
+                    "default": False
+                },
+                {
+                    "voiceURI": "urn:moz-tts:sapi:Microsoft Guy Online (Natural) - English (United States)?en-US",
+                    "name": "Microsoft Guy Online (Natural) - English (United States)",
+                    "lang": "en-US",
+                    "localService": False,
+                    "default": False
+                },
+                {
+                    "voiceURI": "urn:moz-tts:sapi:Microsoft Jenny Online (Natural) - English (United States)?en-US",
+                    "name": "Microsoft Jenny Online (Natural) - English (United States)",
+                    "lang": "en-US",
+                    "localService": False,
+                    "default": False
+                },
+                {
+                    "voiceURI": "urn:moz-tts:sapi:Microsoft Ana Online (Natural) - English (United States)?en-US",
+                    "name": "Microsoft Ana Online (Natural) - English (United States)",
+                    "lang": "en-US",
+                    "localService": False,
+                    "default": False
                 }
             ]
 
     if not profile_loaded:
-        # Set a fixed font spacing seed
-        set_into(config, 'fonts:spacing_seed', randint(0, 1_073_741_823))  # nosec
+        # Set spacing seed for font fingerprinting (fully supported in binary)
+        set_into(config, 'fonts:spacing_seed', randint(1, 4_294_967_295))  # nosec
+
 
     # Set geolocation
     if geoip:
@@ -955,6 +1144,12 @@ def launch_options(
                 q_parts.append(f"{l};q={q:.1f}")
         accept_lang = ",".join(q_parts)
         set_into(config, 'headers.Accept-Language', accept_lang)
+        firefox_user_prefs['intl.accept_languages'] = accept_lang
+        if primary == 'en-US':
+            firefox_user_prefs['javascript.use_us_english_locale'] = True
+
+
+
 
     # Pass the humanize option
     if humanize:
@@ -1103,6 +1298,8 @@ def launch_options(
             {
                 'canvas:aaOffset': randint(-50, 50),     # nosec
                 'canvas:aaCapOffset': True,
+                'canvas:seed': randint(1, 4_294_967_295), # nosec
+                'audio:seed': randint(1, 4_294_967_295),  # nosec
             },
         )
 
@@ -1131,6 +1328,11 @@ def launch_options(
         except Exception as e:
             print(f"[camoufox] Warning: Failed to save profile cache: {e}")
 
+    # Pop internal _stealth config properties to avoid validate_config throwing UnknownProperty
+    stealth_keys = [k for k in config.keys() if k.startswith('_stealth:')]
+    for k in stealth_keys:
+        config.pop(k)
+
     # Print the config if debug is enabled
     if debug:
         print('[DEBUG] Config:')
@@ -1138,6 +1340,7 @@ def launch_options(
 
     # Validate the config
     validate_config(config, path=executable_path)
+
 
     # Prepare environment variables to pass to Camoufox
     env_vars = {

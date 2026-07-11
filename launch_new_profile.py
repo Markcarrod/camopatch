@@ -10,7 +10,12 @@ PROXY = {
 }
 
 def main():
-    manager = StealthProfileManager("profiles")
+    # Set your profiles directory here.
+    # On Ubuntu, use an absolute path like: "/home/youruser/camofox_profiles"
+    # On Windows, use an absolute path like: r"C:\Users\Administrator\Desktop\FB WARMS\PROFILES"
+    # Or use a relative path (defaults to ./profiles next to this script):
+    PROFILES_DIR = "profiles"
+    manager = StealthProfileManager(PROFILES_DIR)
     existing = manager.list_profiles()
 
     # Scan existing profiles to find the highest number 'oN'
