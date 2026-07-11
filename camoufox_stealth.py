@@ -511,10 +511,21 @@ def _common_kwargs(
         profile_path = manager.get_profile_path(profile_name)
         kwargs["user_data_dir"] = str(profile_path)
 
+    # Linux (Ubuntu RDP): fix RDD sandbox crash and software rendering failure.
+    # - MOZ_DISABLE_RDD_SANDBOX: stops seccomp from blocking syscalls in the
+    #   Remote Data Decoder process (causes immediate crash on RDP without GPU).
+    # - LIBGL_ALWAYS_SOFTWARE: forces Mesa software GL so Firefox doesn't need
+    #   a real GPU to render (fixes "RenderCompositorSWGL failed mapping default
+    #   framebuffer, no dt" crash on VMs / RDP sessions).
+    if _PLATFORM == "Linux":
+        kwargs["env"] = {
+            "MOZ_DISABLE_RDD_SANDBOX": "1",
+            "LIBGL_ALWAYS_SOFTWARE": "1",
+        }
+
     # Compute stable per-profile constants and attach them so the launchers
     # can inject them as window.__camou_profile before stealth_patch.js runs.
     kwargs['_profile_consts'] = _profile_constants(profile_name, profiles_dir)
-
 
     return kwargs
 
