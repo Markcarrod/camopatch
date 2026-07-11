@@ -376,24 +376,23 @@ def _profile_constants(profile_name: Optional[str] = None, profiles_dir: str = "
 def _validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Strips any config keys not supported by the currently installed camoufox version.
-    Self-healing: keeps removing bad keys (one at a time) until launch_options() accepts
-    the config without raising an 'Unknown property' error.
+    Uses camoufox's own _load_properties() (reads properties.json) — fast, no
+    fingerprint generation, no warnings. Falls back to returning config unchanged
+    if the internal function is not accessible.
     """
-    import re as _re
-    test_config = dict(config)
-    while True:
-        try:
-            launch_options(os=_CAMOUFOX_OS, config=test_config)
-            break  # all remaining keys are valid
-        except Exception as exc:
-            m = _re.search(r"Unknown property (\S+) in config", str(exc))
-            if m:
-                bad_key = m.group(1)
-                print(f"[camoufox_stealth] Note: config key '{bad_key}' not supported by this camoufox version — skipping.")
-                test_config.pop(bad_key, None)
-            else:
-                break  # different error — stop filtering, let the launcher handle it
-    return test_config
+    try:
+        from camoufox.utils import _load_properties
+        valid_keys = _load_properties()  # dict of {property_name: type}
+    except Exception:
+        return config  # can't validate — pass everything through unchanged
+
+    filtered = {}
+    for key, val in config.items():
+        if key in valid_keys:
+            filtered[key] = val
+        else:
+            print(f"[camoufox_stealth] Note: config key '{key}' not supported by this camoufox version — skipping.")
+    return filtered
 
 
 # ===========================================================================
