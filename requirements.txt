@@ -1,2 +1,1 @@
 camoufox[geoip]
-playwright==1.49.1

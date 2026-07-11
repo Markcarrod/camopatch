@@ -501,6 +501,10 @@ def _common_kwargs(
         "block_webgl": False,
         "block_images": False,
         "i_know_what_im_doing": False,
+        # Prevent Playwright from calling Browser.setDefaultViewport which sends
+        # isMobile:false — a field not in camoufox's Juggler protocol schema.
+        # Window size is set by camoufox config so this has no fingerprint impact.
+        "no_viewport": True,
     }
 
     if proxy:
