@@ -512,17 +512,13 @@ def _common_kwargs(
         kwargs["user_data_dir"] = str(profile_path)
 
     # Linux (Ubuntu RDP): fix RDD sandbox crash and software rendering failure.
-    # - MOZ_DISABLE_RDD_SANDBOX: stops seccomp from blocking syscalls in the
-    #   Remote Data Decoder process (causes immediate crash on RDP without GPU).
-    # - LIBGL_ALWAYS_SOFTWARE: forces Mesa software GL so Firefox doesn't need
-    #   a real GPU to render (fixes "RenderCompositorSWGL failed mapping default
-    #   framebuffer, no dt" crash on VMs / RDP sessions).
+    # Set directly on os.environ so Playwright inherits the FULL system env
+    # (including DISPLAY, PATH, LD_LIBRARY_PATH) — using kwargs["env"] would
+    # strip those out and cause "XServer not running" failures.
     if _PLATFORM == "Linux":
-        kwargs["env"] = {
-            "MOZ_DISABLE_RDD_SANDBOX": "1",
-            "MOZ_DISABLE_CONTENT_SANDBOX": "1",
-            "LIBGL_ALWAYS_SOFTWARE": "1",
-        }
+        os.environ.setdefault("MOZ_DISABLE_RDD_SANDBOX", "1")
+        os.environ.setdefault("MOZ_DISABLE_CONTENT_SANDBOX", "1")
+        os.environ.setdefault("LIBGL_ALWAYS_SOFTWARE", "1")
 
     # Compute stable per-profile constants and attach them so the launchers
     # can inject them as window.__camou_profile before stealth_patch.js runs.
