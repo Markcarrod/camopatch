@@ -518,10 +518,13 @@ def _common_kwargs(
     #   a real GPU to render (fixes "RenderCompositorSWGL failed mapping default
     #   framebuffer, no dt" crash on VMs / RDP sessions).
     if _PLATFORM == "Linux":
-        kwargs["env"] = {
+        import os
+        custom_env = os.environ.copy()
+        custom_env.update({
             "MOZ_DISABLE_SANDBOX": "1",
             "LIBGL_ALWAYS_SOFTWARE": "1",
-        }
+        })
+        kwargs["env"] = custom_env
 
     # Compute stable per-profile constants and attach them so the launchers
     # can inject them as window.__camou_profile before stealth_patch.js runs.
