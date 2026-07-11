@@ -1,20 +1,10 @@
 import re
-import sys
-from pathlib import Path
 from camoufox_stealth import launch_stealth_browser, StealthProfileManager
 
-PROXY = {
-    "server":   "http://216.65.131.249:20781",
-    "username": "Dv72SY1Hg0",
-    "password":  "XnxLK4jYmY",
-}
+# Profiles directory — absolute path on Ubuntu
+PROFILES_DIR = "/home/kayan/Desktop/FB WARMS/FBPROFILE"
 
 def main():
-    # Set your profiles directory here.
-    # On Ubuntu, use an absolute path like: "/home/youruser/camofox_profiles"
-    # On Windows, use an absolute path like: r"C:\Users\Administrator\Desktop\FB WARMS\PROFILES"
-    # Or use a relative path (defaults to ./profiles next to this script):
-    PROFILES_DIR = "profiles"
     manager = StealthProfileManager(PROFILES_DIR)
     existing = manager.list_profiles()
 
@@ -27,20 +17,21 @@ def main():
 
     next_profile = f"o{max_num + 1}"
     print(f"\n[INFO] Auto-detected next profile name: '{next_profile}'")
-    print(f"[INFO] Generating and launching headful browser with modern Windows hardware and proxy...")
-    
+    print(f"[INFO] Launching headful browser (no proxy)...")
+
     try:
         with launch_stealth_browser(
             profile_name=next_profile,
+            profiles_dir=PROFILES_DIR,
             headless=False,
-            proxy=PROXY,
+            proxy=None,
             geoip=True,
         ) as browser:
             page = browser.new_page()
             page.goto("https://abrahamjuliot.github.io/creepjs/")
             print(f"\n[SUCCESS] Active Profile: '{next_profile}'")
             print("[INFO] Click the browser window to interact. Closing the browser window will complete the session.")
-            
+
             # Wait indefinitely until the page is closed
             page.wait_for_event("close", timeout=0)
     except Exception as e:
