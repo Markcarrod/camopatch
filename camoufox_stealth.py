@@ -370,6 +370,33 @@ def _profile_constants(profile_name: Optional[str] = None, profiles_dir: str = "
 
 
 # ===========================================================================
+# Internal: config key validator (version-agnostic)
+# ===========================================================================
+
+def _validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Strips any config keys not supported by the currently installed camoufox version.
+    Self-healing: keeps removing bad keys (one at a time) until launch_options() accepts
+    the config without raising an 'Unknown property' error.
+    """
+    import re as _re
+    test_config = dict(config)
+    while True:
+        try:
+            launch_options(os=_CAMOUFOX_OS, config=test_config)
+            break  # all remaining keys are valid
+        except Exception as exc:
+            m = _re.search(r"Unknown property (\S+) in config", str(exc))
+            if m:
+                bad_key = m.group(1)
+                print(f"[camoufox_stealth] Note: config key '{bad_key}' not supported by this camoufox version — skipping.")
+                test_config.pop(bad_key, None)
+            else:
+                break  # different error — stop filtering, let the launcher handle it
+    return test_config
+
+
+# ===========================================================================
 # Internal: shared kwargs builder
 # ===========================================================================
 
@@ -452,6 +479,8 @@ def _common_kwargs(
     if extra_config:
         base_config.update(extra_config)
 
+    # Strip any config keys unsupported by the installed camoufox version
+    base_config = _validate_config(base_config)
 
     extra_firefox_prefs: Dict[str, Any] = {
         "media.webspeech.synth.enabled": True,
