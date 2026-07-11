@@ -1339,6 +1339,17 @@ def launch_options(
     for k in stealth_keys:
         config.pop(k)
 
+    # Pop any canvas/audio seed keys not supported by this binary version
+    # (these are injected by the hardened utils but may not be in properties.json)
+    try:
+        _known_props = set(_load_properties(path=executable_path).keys())
+        _seed_keys = ['canvas:seed', 'audio:seed', 'canvas:aaOffset', 'canvas:aaCapOffset']
+        for k in _seed_keys:
+            if k in config and k not in _known_props:
+                config.pop(k)
+    except Exception:
+        pass
+
     # Print the config if debug is enabled
     if debug:
         print('[DEBUG] Config:')
@@ -1346,6 +1357,7 @@ def launch_options(
 
     # Validate the config
     validate_config(config, path=executable_path)
+
 
 
     # Prepare environment variables to pass to Camoufox
