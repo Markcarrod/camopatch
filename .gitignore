@@ -17,6 +17,10 @@ __pycache__/
 # Windows-only installer (not needed on Linux)
 vc_redist.exe
 
+# Camoufox downloaded browser bundle (fetched via `python -m camoufox fetch`)
+# Contains large binary font/asset files — do not commit
+camoufox/bundle/
+
 # Scratch / dev files
 scratch/
 scratch_verify.py
