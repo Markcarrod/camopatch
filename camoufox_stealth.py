@@ -520,6 +520,7 @@ def _common_kwargs(
     if _PLATFORM == "Linux":
         kwargs["env"] = {
             "MOZ_DISABLE_RDD_SANDBOX": "1",
+            "MOZ_DISABLE_CONTENT_SANDBOX": "1",
             "LIBGL_ALWAYS_SOFTWARE": "1",
         }
 

@@ -25,7 +25,7 @@ def main():
             profiles_dir=PROFILES_DIR,
             headless=False,
             proxy=None,
-            geoip=True,
+            geoip=False,
         ) as browser:
             page = browser.new_page()
             page.goto("https://abrahamjuliot.github.io/creepjs/")
@@ -34,11 +34,14 @@ def main():
 
             # Wait indefinitely until the page is closed
             page.wait_for_event("close", timeout=0)
+    except KeyboardInterrupt:
+        print("\n[INFO] Interrupted by user.")
     except Exception as e:
-        if "Connection closed" in str(e) or "closed" in str(e).lower():
-            print("\n[INFO] Browser closed by user.")
-        else:
-            print(f"\n[INFO] Session ended: {e}")
+        err = str(e)
+        # Show the real error always — helpful for debugging
+        print(f"\n[ERROR] {err[:600]}")
+        if "Target page, context or browser has been closed" in err or err.strip() == "":
+            print("[INFO] Browser was closed.")
 
 if __name__ == "__main__":
     main()
